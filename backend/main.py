@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from text_processing import compare_texts
+from skill_extraction import compare_skills
 
 
 app = FastAPI(
@@ -35,12 +36,18 @@ def read_root():
 
 @app.post("/analyze")
 def analyze_match(request: MatchRequest):
-    analysis = compare_texts(
+    text_analysis = compare_texts(
+        request.resume_text,
+        request.job_description,
+    )
+
+    skill_analysis = compare_skills(
         request.resume_text,
         request.job_description,
     )
 
     return {
         "message": "Resume and job description analyzed successfully",
-        **analysis,
+        **text_analysis,
+        **skill_analysis,
     }
