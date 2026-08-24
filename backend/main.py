@@ -2,7 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-app = FastAPI()
+from text_processing import compare_texts
+
+
+app = FastAPI(
+    title="AI Resume Job Matcher API",
+    description="Backend API for analyzing resume and job description compatibility.",
+    version="1.0.0",
+)
 
 
 app.add_middleware(
@@ -28,8 +35,12 @@ def read_root():
 
 @app.post("/analyze")
 def analyze_match(request: MatchRequest):
+    analysis = compare_texts(
+        request.resume_text,
+        request.job_description,
+    )
+
     return {
-        "message": "Resume and job description received",
-        "resume_length": len(request.resume_text),
-        "job_description_length": len(request.job_description),
+        "message": "Resume and job description analyzed successfully",
+        **analysis,
     }

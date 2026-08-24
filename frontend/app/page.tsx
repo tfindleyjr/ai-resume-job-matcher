@@ -4,8 +4,13 @@ import { ChangeEvent, useState } from "react";
 
 type AnalyzeResponse = {
   message: string;
-  resume_length: number;
-  job_description_length: number;
+  resume_word_count: number;
+  job_word_count: number;
+  resume_unique_word_count: number;
+  job_unique_word_count: number;
+  shared_word_count: number;
+  shared_words: string[];
+  missing_words: string[];
 };
 
 export default function Home() {
@@ -22,11 +27,20 @@ export default function Home() {
 
   const [backendMessage, setBackendMessage] = useState("");
 
-  const [resumeLength, setResumeLength] =
+  const [resumeWordCount, setResumeWordCount] =
+  useState<number | null>(null);
+
+  const [jobWordCount, setJobWordCount] =
     useState<number | null>(null);
 
-  const [jobDescriptionLength, setJobDescriptionLength] =
+  const [sharedWordCount, setSharedWordCount] =
     useState<number | null>(null);
+
+  const [sharedWords, setSharedWords] =
+    useState<string[]>([]);
+
+  const [missingWords, setMissingWords] =
+    useState<string[]>([]);
 
   async function handleResumeUpload(
   event: ChangeEvent<HTMLInputElement>
@@ -139,8 +153,25 @@ export default function Home() {
         await response.json();
 
       setBackendMessage(data.message);
-      setResumeLength(data.resume_length);
-      setJobDescriptionLength(data.job_description_length);
+      setResumeWordCount(
+        data.resume_word_count
+      );
+
+      setJobWordCount(
+        data.job_word_count
+      );
+
+      setSharedWordCount(
+        data.shared_word_count
+      );
+
+      setSharedWords(
+        data.shared_words
+      );
+
+      setMissingWords(
+        data.missing_words
+      );
 
       setAnalysisStarted(true);
     } catch (error) {
@@ -160,8 +191,11 @@ export default function Home() {
     setAnalysisStarted(false);
     setErrorMessage("");
     setBackendMessage("");
-    setResumeLength(null);
-    setJobDescriptionLength(null);
+    setResumeWordCount(null);
+    setJobWordCount(null);
+    setSharedWordCount(null);
+    setSharedWords([]);
+    setMissingWords([]);
   }
 
   function handleClearJobDescription() {
@@ -169,8 +203,11 @@ export default function Home() {
     setAnalysisStarted(false);
     setErrorMessage("");
     setBackendMessage("");
-    setResumeLength(null);
-    setJobDescriptionLength(null);
+    setResumeWordCount(null);
+    setJobWordCount(null);
+    setSharedWordCount(null);
+    setSharedWords([]);
+    setMissingWords([]);
   }
 
   return (
@@ -357,55 +394,113 @@ export default function Home() {
         </div>
 
         <section className="mt-10 rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
-          {!analysisStarted ? (
-            <>
-              <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
-                Analysis Results
+  {!analysisStarted ? (
+    <>
+      <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+        Analysis Results
+      </p>
+
+      <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+        Your match results will appear here.
+      </h2>
+
+      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">
+        Upload or paste your resume, add a job description, then select
+        Analyze Match.
+      </p>
+    </>
+  ) : (
+    <>
+      <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
+        Text Analysis Complete
+      </p>
+
+      <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+        {backendMessage}
+      </h2>
+
+      <div className="mx-auto mt-6 grid max-w-4xl gap-4 md:grid-cols-3">
+        <div className="rounded-xl bg-slate-50 p-5">
+          <p className="text-sm font-medium text-slate-500">
+            Resume Words
+          </p>
+
+          <p className="mt-2 text-3xl font-bold text-slate-900">
+            {resumeWordCount?.toLocaleString()}
+          </p>
+        </div>
+
+        <div className="rounded-xl bg-slate-50 p-5">
+          <p className="text-sm font-medium text-slate-500">
+            Job Description Words
+          </p>
+
+          <p className="mt-2 text-3xl font-bold text-slate-900">
+            {jobWordCount?.toLocaleString()}
+          </p>
+        </div>
+
+        <div className="rounded-xl bg-slate-50 p-5">
+          <p className="text-sm font-medium text-slate-500">
+            Shared Words
+          </p>
+
+          <p className="mt-2 text-3xl font-bold text-slate-900">
+            {sharedWordCount?.toLocaleString()}
+          </p>
+        </div>
+      </div>
+
+      <div className="mx-auto mt-6 grid max-w-4xl gap-6 text-left md:grid-cols-2">
+        <div className="rounded-xl border border-green-200 bg-green-50 p-5">
+          <h3 className="font-semibold text-green-900">
+            Shared Keywords
+          </h3>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            {sharedWords.length > 0 ? (
+              sharedWords.map((word) => (
+                <span
+                  key={word}
+                  className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800"
+                >
+                  {word}
+                </span>
+              ))
+            ) : (
+              <p className="text-sm text-green-700">
+                No shared keywords found.
               </p>
+            )}
+          </div>
+        </div>
 
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">
-                Your match results will appear here.
-              </h2>
+        <div className="rounded-xl border border-orange-200 bg-orange-50 p-5">
+          <h3 className="font-semibold text-orange-900">
+            Missing Job Keywords
+          </h3>
 
-              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">
-                Upload or paste your resume, add a job description,
-                then select Analyze Match.
+          <div className="mt-4 flex flex-wrap gap-2">
+            {missingWords.length > 0 ? (
+              missingWords.map((word) => (
+                <span
+                  key={word}
+                  className="rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-800"
+                >
+                  {word}
+                </span>
+              ))
+            ) : (
+              <p className="text-sm text-orange-700">
+                No missing keywords found.
               </p>
-            </>
-          ) : (
-            <>
-              <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-                Backend Response
-              </p>
-
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">
-                {backendMessage}
-              </h2>
-
-              <div className="mx-auto mt-6 grid max-w-2xl gap-4 md:grid-cols-2">
-                <div className="rounded-xl bg-slate-50 p-5">
-                  <p className="text-sm font-medium text-slate-500">
-                    Resume Characters
-                  </p>
-
-                  <p className="mt-2 text-3xl font-bold text-slate-900">
-                    {resumeLength?.toLocaleString()}
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-slate-50 p-5">
-                  <p className="text-sm font-medium text-slate-500">
-                    Job Description Characters
-                  </p>
-
-                  <p className="mt-2 text-3xl font-bold text-slate-900">
-                    {jobDescriptionLength?.toLocaleString()}
-                  </p>
-                </div>
-              </div>
-            </>
-          )}
-        </section>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  )}
+</section>
       </div>
     </main>
   );
