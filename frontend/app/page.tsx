@@ -16,13 +16,18 @@ type AnalyzeResponse = {
 
   resume_skills: string[];
   job_skills: string[];
+
   matched_skills: string[];
   missing_skills: string[];
 
   resume_skill_count: number;
   job_skill_count: number;
+
   matched_skill_count: number;
   missing_skill_count: number;
+
+  skill_match_score: number;
+  match_rating: string;
 };
 
 export default function Home() {
@@ -76,6 +81,12 @@ export default function Home() {
 
   const [missingSkillCount, setMissingSkillCount] =
     useState<number | null>(null);
+
+  const [skillMatchScore, setSkillMatchScore] =
+    useState<number | null>(null);
+
+  const [matchRating, setMatchRating] =
+    useState("");
 
   // ============================================================
   // PDF UPLOAD
@@ -200,6 +211,9 @@ export default function Home() {
 
     setMatchedSkillCount(null);
     setMissingSkillCount(null);
+
+    setSkillMatchScore(null);
+    setMatchRating("");
   };
 
   // ============================================================
@@ -307,6 +321,14 @@ export default function Home() {
 
       setMissingSkillCount(
         data.missing_skill_count
+      );
+
+      setSkillMatchScore(
+        data.skill_match_score
+      );
+
+      setMatchRating(
+        data.match_rating
       );
 
       setAnalysisStarted(true);
@@ -586,6 +608,50 @@ export default function Home() {
                   {backendMessage}
                 </h2>
 
+              </div>
+
+              <div className="mx-auto mt-8 max-w-4xl">
+                <div className="rounded-2xl border border-blue-200 bg-blue-50 p-8 text-center">
+                  <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
+                    Resume Match Score
+                  </p>
+
+                  <p className="mt-3 text-6xl font-bold tracking-tight text-slate-900">
+                    {skillMatchScore ?? 0}%
+                  </p>
+
+                  <p className="mt-2 text-xl font-semibold text-slate-700">
+                    {matchRating}
+                  </p>
+
+                  <div className="mx-auto mt-6 h-4 max-w-xl overflow-hidden rounded-full bg-blue-100">
+                    <div
+                      className="h-full rounded-full bg-blue-600 transition-all duration-500"
+                      style={{
+                        width: `${Math.min(skillMatchScore ?? 0, 100)}%`,
+                      }}
+                    />
+                  </div>
+
+                  <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-slate-600">
+                    This score is based on how many technical skills requested
+                    by the job were detected in your resume.
+                  </p>
+                </div>
+
+                <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-left">
+                  <p className="text-sm text-slate-600">
+                    You matched{" "}
+                    <span className="font-semibold text-slate-900">
+                      {matchedSkillCount ?? 0}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-semibold text-slate-900">
+                      {(matchedSkillCount ?? 0) + (missingSkillCount ?? 0)}
+                    </span>{" "}
+                    detected job skills.
+                  </p>
+                </div>
               </div>
 
               {/* ================================================

@@ -112,13 +112,38 @@ def compare_skills(
         job_skills.difference(resume_skills)
     )
 
+    if len(job_skills) > 0:
+        skill_match_score = round(
+            (len(matched_skills) / len(job_skills)) * 100
+        )
+    else:
+        skill_match_score = 0
+
+    if skill_match_score >= 80:
+        match_rating = "Strong Match"
+
+    elif skill_match_score >= 60:
+        match_rating = "Good Match"
+
+    elif skill_match_score >= 40:
+        match_rating = "Moderate Match"
+
+    else:
+        match_rating = "Low Match"
+
     return {
         "resume_skills": sorted(resume_skills),
         "job_skills": sorted(job_skills),
+
         "matched_skills": matched_skills,
         "missing_skills": missing_skills,
+
         "resume_skill_count": len(resume_skills),
         "job_skill_count": len(job_skills),
+
         "matched_skill_count": len(matched_skills),
         "missing_skill_count": len(missing_skills),
+
+        "skill_match_score": skill_match_score,
+        "match_rating": match_rating,
     }
