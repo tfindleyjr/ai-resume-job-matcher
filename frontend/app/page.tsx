@@ -22,7 +22,7 @@ import type {
 // ============================================================
 
 const BACKEND_URL =
-  "https://obscure-palm-tree-pxxgg7647xh779-8000.app.github.dev";
+  "https://ai-resume-job-matcher-lwgt.onrender.com";
 
 
 // ============================================================
@@ -404,7 +404,7 @@ export default function Home() {
 
       const response =
         await fetch(
-          `https://obscure-palm-tree-pxxgg7647xh779-8000.app.github.dev/analyze`,
+          "https://ai-resume-job-matcher-lwgt.onrender.com/analyze",
           {
             method: "POST",
 
