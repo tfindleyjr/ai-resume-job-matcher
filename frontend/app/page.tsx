@@ -8,6 +8,12 @@ type Recommendation = {
   type: string;
 };
 
+type RewriteSuggestion = {
+  original: string;
+  suggested: string;
+  reason: string;
+};
+
 type AnalyzeResponse = {
   message: string;
 
@@ -39,6 +45,7 @@ type AnalyzeResponse = {
   overall_match_score: number;
 
   recommendations: Recommendation[];
+  rewrite_suggestions: RewriteSuggestion[];
 };
 
 export default function Home() {
@@ -107,6 +114,9 @@ export default function Home() {
 
   const [recommendations, setRecommendations] =
     useState<Recommendation[]>([]); 
+
+  const [rewriteSuggestions, setRewriteSuggestions] =
+  useState<RewriteSuggestion[]>([]);
 
   // ============================================================
   // PDF UPLOAD
@@ -239,6 +249,7 @@ export default function Home() {
     setOverallMatchScore(null);
 
     setRecommendations([]);
+    setRewriteSuggestions([]);
   };
 
   // ============================================================
@@ -366,6 +377,10 @@ export default function Home() {
 
       setRecommendations(
         data.recommendations
+      );
+
+      setRewriteSuggestions(
+        data.rewrite_suggestions
       );
 
       setAnalysisStarted(true);
@@ -815,6 +830,90 @@ export default function Home() {
 
                       <p className="text-sm text-slate-600">
                         No recommendations were generated for this analysis.
+                      </p>
+
+                    </div>
+
+                  )}
+
+                </div>
+
+              </div>
+
+              {/* ================================================
+                  PHASE 12 — RESUME OPTIMIZATION
+              ================================================ */}
+
+              <div className="mx-auto mt-10 max-w-4xl">
+
+                <div className="mb-6">
+
+                  <p className="text-sm font-semibold uppercase tracking-widest text-purple-600">
+                    Resume Optimization
+                  </p>
+
+                  <h3 className="mt-2 text-2xl font-bold text-slate-900">
+                    Suggested Resume Rewrites
+                  </h3>
+
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
+                    These suggestions strengthen the wording already present
+                    in your resume without inventing new experience.
+                  </p>
+
+                </div>
+
+                <div className="space-y-5">
+
+                  {rewriteSuggestions.length > 0 ? (
+
+                    rewriteSuggestions.map((suggestion, index) => (
+
+                      <div
+                        key={`${suggestion.original}-${index}`}
+                        className="rounded-2xl border border-slate-200 bg-white p-6"
+                      >
+
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                          Original
+                        </p>
+
+                        <p className="mt-2 text-sm leading-6 text-slate-600">
+                          {suggestion.original}
+                        </p>
+
+                        <div className="my-5 border-t border-slate-200" />
+
+                        <p className="text-xs font-semibold uppercase tracking-wide text-purple-600">
+                          Suggested Rewrite
+                        </p>
+
+                        <p className="mt-2 font-medium leading-7 text-slate-900">
+                          {suggestion.suggested}
+                        </p>
+
+                        <div className="mt-5 rounded-xl bg-purple-50 p-4">
+
+                          <p className="text-xs font-semibold uppercase tracking-wide text-purple-600">
+                            Why this helps
+                          </p>
+
+                          <p className="mt-2 text-sm leading-6 text-purple-900">
+                            {suggestion.reason}
+                          </p>
+
+                        </div>
+
+                      </div>
+
+                    ))
+
+                  ) : (
+
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-5">
+
+                      <p className="text-sm text-slate-600">
+                        No rewrite suggestions were generated.
                       </p>
 
                     </div>
