@@ -4,11 +4,15 @@ from pydantic import BaseModel
 
 from text_processing import compare_texts
 from skill_extraction import compare_skills
+from semantic_matching import calculate_semantic_similarity
 
 
 app = FastAPI(
     title="AI Resume Job Matcher API",
-    description="Backend API for analyzing resume and job description compatibility.",
+    description=(
+        "Backend API for analyzing resume and "
+        "job description compatibility."
+    ),
     version="1.0.0",
 )
 
@@ -36,6 +40,7 @@ def read_root():
 
 @app.post("/analyze")
 def analyze_match(request: MatchRequest):
+
     text_analysis = compare_texts(
         request.resume_text,
         request.job_description,
@@ -46,8 +51,29 @@ def analyze_match(request: MatchRequest):
         request.job_description,
     )
 
+    semantic_score = calculate_semantic_similarity(
+        request.resume_text,
+        request.job_description,
+    )
+
+    skill_match_score = skill_analysis[
+        "skill_match_score"
+    ]
+
+    overall_match_score = round(
+        (skill_match_score * 0.70)
+        + (semantic_score * 0.30)
+    )
+
     return {
-        "message": "Resume and job description analyzed successfully",
+        "message": (
+            "Resume and job description "
+            "analyzed successfully"
+        ),
+
         **text_analysis,
         **skill_analysis,
+
+        "semantic_score": semantic_score,
+        "overall_match_score": overall_match_score,
     }

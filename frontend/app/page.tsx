@@ -28,6 +28,9 @@ type AnalyzeResponse = {
 
   skill_match_score: number;
   match_rating: string;
+
+  semantic_score: number;
+  overall_match_score: number;
 };
 
 export default function Home() {
@@ -87,6 +90,12 @@ export default function Home() {
 
   const [matchRating, setMatchRating] =
     useState("");
+
+  const [semanticScore, setSemanticScore] =
+    useState<number | null>(null); 
+
+  const [overallMatchScore, setOverallMatchScore] =
+    useState<number | null>(null);
 
   // ============================================================
   // PDF UPLOAD
@@ -214,6 +223,9 @@ export default function Home() {
 
     setSkillMatchScore(null);
     setMatchRating("");
+
+    setSemanticScore(null);
+    setOverallMatchScore(null);
   };
 
   // ============================================================
@@ -329,6 +341,14 @@ export default function Home() {
 
       setMatchRating(
         data.match_rating
+      );
+
+      setSemanticScore(
+        data.semantic_score
+      );
+
+      setOverallMatchScore(
+        data.overall_match_score
       );
 
       setAnalysisStarted(true);
@@ -610,48 +630,108 @@ export default function Home() {
 
               </div>
 
-              <div className="mx-auto mt-8 max-w-4xl">
+             <div className="mx-auto mt-8 max-w-4xl rounded-2xl border border-slate-200 bg-slate-900 p-8 text-center text-white shadow-sm">
+
+              <p className="text-sm font-semibold uppercase tracking-widest text-slate-300">
+                Overall Resume Match
+              </p>
+
+              <p className="mt-4 text-7xl font-bold tracking-tight">
+                {overallMatchScore ?? 0}%
+              </p>
+
+              <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-slate-300">
+                Your overall score combines technical skill overlap with
+                AI-powered semantic similarity.
+              </p>
+
+              <div className="mx-auto mt-6 h-4 max-w-xl overflow-hidden rounded-full bg-slate-700">
+                <div
+                  className="h-full rounded-full bg-white transition-all duration-500"
+                  style={{
+                    width: `${Math.min(
+                      overallMatchScore ?? 0,
+                      100
+                    )}%`,
+                  }}
+                />
+              </div>
+
+            </div>
+ 
+              <div className="mx-auto mt-8 grid max-w-4xl gap-5 md:grid-cols-2">
+
+                {/* SKILL MATCH */}
+
                 <div className="rounded-2xl border border-blue-200 bg-blue-50 p-8 text-center">
+
                   <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
-                    Resume Match Score
+                    Skill Match
                   </p>
 
-                  <p className="mt-3 text-6xl font-bold tracking-tight text-slate-900">
+                  <p className="mt-3 text-5xl font-bold tracking-tight text-slate-900">
                     {skillMatchScore ?? 0}%
                   </p>
 
-                  <p className="mt-2 text-xl font-semibold text-slate-700">
+                  <p className="mt-2 text-lg font-semibold text-slate-700">
                     {matchRating}
                   </p>
 
-                  <div className="mx-auto mt-6 h-4 max-w-xl overflow-hidden rounded-full bg-blue-100">
+                  <div className="mx-auto mt-6 h-3 overflow-hidden rounded-full bg-blue-100">
                     <div
                       className="h-full rounded-full bg-blue-600 transition-all duration-500"
                       style={{
-                        width: `${Math.min(skillMatchScore ?? 0, 100)}%`,
+                        width: `${Math.min(
+                          skillMatchScore ?? 0,
+                          100
+                        )}%`,
                       }}
                     />
                   </div>
 
-                  <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-slate-600">
-                    This score is based on how many technical skills requested
-                    by the job were detected in your resume.
+                  <p className="mt-4 text-sm leading-6 text-slate-600">
+                    Measures how many technical skills requested by the job
+                    were detected in your resume.
                   </p>
+
                 </div>
 
-                <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 text-left">
-                  <p className="text-sm text-slate-600">
-                    You matched{" "}
-                    <span className="font-semibold text-slate-900">
-                      {matchedSkillCount ?? 0}
-                    </span>{" "}
-                    of{" "}
-                    <span className="font-semibold text-slate-900">
-                      {(matchedSkillCount ?? 0) + (missingSkillCount ?? 0)}
-                    </span>{" "}
-                    detected job skills.
+
+                {/* SEMANTIC MATCH */}
+
+                <div className="rounded-2xl border border-purple-200 bg-purple-50 p-8 text-center">
+
+                  <p className="text-sm font-semibold uppercase tracking-widest text-purple-600">
+                    Semantic Match
                   </p>
+
+                  <p className="mt-3 text-5xl font-bold tracking-tight text-slate-900">
+                    {semanticScore ?? 0}%
+                  </p>
+
+                  <p className="mt-2 text-lg font-semibold text-slate-700">
+                    AI Similarity
+                  </p>
+
+                  <div className="mx-auto mt-6 h-3 overflow-hidden rounded-full bg-purple-100">
+                    <div
+                      className="h-full rounded-full bg-purple-600 transition-all duration-500"
+                      style={{
+                        width: `${Math.min(
+                          semanticScore ?? 0,
+                          100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+
+                  <p className="mt-4 text-sm leading-6 text-slate-600">
+                    Uses a language model to measure how closely the meaning
+                    of your resume aligns with the job description.
+                  </p>
+
                 </div>
+
               </div>
 
               {/* ================================================
