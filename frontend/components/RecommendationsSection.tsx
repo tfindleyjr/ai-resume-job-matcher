@@ -10,55 +10,54 @@ export default function RecommendationsSection({
   recommendations,
 }: RecommendationsSectionProps) {
   return (
-    <div className="mx-auto mt-10 max-w-4xl">
+    <section className="mx-auto mt-12 max-w-5xl">
       <div className="mb-6">
-        <p className="text-sm font-semibold uppercase tracking-widest text-blue-600">
-          Resume Recommendations
+        <p className="text-sm font-semibold uppercase tracking-[0.15em] text-blue-600">
+          Recommendations
         </p>
 
-        <h3 className="mt-2 text-2xl font-bold text-slate-900">
+        <h3 className="mt-2 text-2xl font-bold text-slate-950">
           How to Improve Your Match
         </h3>
 
         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-          Based on your resume and this job description,
-          here are the areas that could make your
-          application stronger.
+          These suggestions are based on the skill gaps and contextual
+          differences found during your analysis.
         </p>
       </div>
 
-      <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2">
         {recommendations.length > 0 ? (
-          recommendations.map(
-            (recommendation, index) => (
-              <div
-                key={`${recommendation.title}-${index}`}
-                className="rounded-xl border border-slate-200 bg-slate-50 p-5"
-              >
-                <div className="flex gap-4">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
-                    {index + 1}
-                  </div>
+          recommendations.map((recommendation, index) => (
+            <article
+              key={`${recommendation.title}-${index}`}
+              className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+            >
+              <div className="flex gap-4">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-sm font-bold text-white">
+                  {index + 1}
+                </span>
 
-                  <div>
-                    <h4 className="font-semibold text-slate-900">
-                      {recommendation.title}
-                    </h4>
+                <div>
+                  <h4 className="font-bold text-slate-900">
+                    {recommendation.title}
+                  </h4>
 
-                    <p className="mt-2 text-sm leading-6 text-slate-600">
-                      {recommendation.description}
-                    </p>
-                  </div>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    {recommendation.description}
+                  </p>
                 </div>
               </div>
-            )
-          )
+            </article>
+          ))
         ) : (
-          <p className="text-sm text-slate-600">
-            No recommendations generated.
-          </p>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-6">
+            <p className="text-sm text-slate-500">
+              No recommendations were generated.
+            </p>
+          </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }

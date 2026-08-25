@@ -25,99 +25,126 @@ export default function AnalysisDetails({
   jobSkills,
 }: AnalysisDetailsProps) {
   return (
-    <div className="mx-auto mt-10 max-w-4xl">
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="rounded-xl bg-slate-50 p-5 text-center">
-          <p className="text-sm text-slate-500">
-            Resume Words
-          </p>
+    <section className="mx-auto mt-12 max-w-5xl">
+      <div className="mb-6">
+        <p className="text-sm font-semibold uppercase tracking-[0.15em] text-slate-400">
+          Detailed Analysis
+        </p>
 
-          <p className="mt-2 text-3xl font-bold">
-            {resumeWordCount ?? 0}
-          </p>
-        </div>
-
-        <div className="rounded-xl bg-slate-50 p-5 text-center">
-          <p className="text-sm text-slate-500">
-            Job Description Words
-          </p>
-
-          <p className="mt-2 text-3xl font-bold">
-            {jobWordCount ?? 0}
-          </p>
-        </div>
-
-        <div className="rounded-xl bg-slate-50 p-5 text-center">
-          <p className="text-sm text-slate-500">
-            Shared Words
-          </p>
-
-          <p className="mt-2 text-3xl font-bold">
-            {sharedWordCount ?? 0}
-          </p>
-        </div>
+        <h3 className="mt-2 text-2xl font-bold text-slate-950">
+          What the System Detected
+        </h3>
       </div>
 
-      <div className="mt-6 grid gap-6 md:grid-cols-2">
-        <ListCard
-          title="Shared Keywords"
-          items={sharedWords}
+      <div className="grid gap-4 md:grid-cols-3">
+        <MetricCard
+          label="Resume Words"
+          value={resumeWordCount}
         />
 
-        <ListCard
-          title="Missing Keywords"
-          items={missingWords}
+        <MetricCard
+          label="Job Description Words"
+          value={jobWordCount}
         />
 
+        <MetricCard
+          label="Shared Words"
+          value={sharedWordCount}
+        />
+      </div>
+
+      <div className="mt-6 grid gap-5 md:grid-cols-2">
         <ListCard
           title="Matched Skills"
+          description="Technical skills detected in both documents."
           items={matchedSkills}
         />
 
         <ListCard
           title="Missing Skills"
+          description="Job skills not detected in the resume."
           items={missingSkills}
         />
 
         <ListCard
+          title="Shared Keywords"
+          description="Relevant vocabulary appearing in both documents."
+          items={sharedWords}
+        />
+
+        <ListCard
+          title="Missing Keywords"
+          description="Job-description vocabulary absent from the resume."
+          items={missingWords}
+        />
+
+        <ListCard
           title="Resume Skills"
+          description="All recognized skills from the resume."
           items={resumeSkills}
         />
 
         <ListCard
           title="Job Skills"
+          description="All recognized skills from the job posting."
           items={jobSkills}
         />
       </div>
+    </section>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: number | null;
+}) {
+  return (
+    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5">
+      <p className="text-sm font-medium text-slate-500">
+        {label}
+      </p>
+
+      <p className="mt-2 text-3xl font-bold text-slate-950">
+        {(value ?? 0).toLocaleString()}
+      </p>
     </div>
   );
 }
 
 function ListCard({
   title,
+  description,
   items,
 }: {
   title: string;
+  description: string;
   items: string[];
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 p-5">
-      <h4 className="font-semibold text-slate-900">
+    <div className="rounded-2xl border border-slate-200 bg-white p-5">
+      <h4 className="font-bold text-slate-900">
         {title}
       </h4>
+
+      <p className="mt-1 text-sm text-slate-500">
+        {description}
+      </p>
 
       <div className="mt-4 flex flex-wrap gap-2">
         {items.length > 0 ? (
           items.map((item) => (
             <span
               key={item}
-              className="rounded-full bg-slate-100 px-3 py-1 text-sm text-slate-700"
+              className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-sm font-medium text-slate-700"
             >
               {item}
             </span>
           ))
         ) : (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-400">
             None detected.
           </p>
         )}

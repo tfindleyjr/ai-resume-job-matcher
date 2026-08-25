@@ -1,12 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from fastapi import FastAPI, HTTPException
 
 from text_processing import compare_texts
 from skill_extraction import compare_skills
 from semantic_matching import calculate_semantic_similarity
 from recommendations import generate_recommendations
 from resume_optimization import generate_rewrite_suggestions
+
 
 
 app = FastAPI(
@@ -46,6 +48,30 @@ def read_root():
 def analyze_match(
     request: MatchRequest
 ):
+
+    if not request.resume_text.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Resume text cannot be empty.",
+        )
+
+    if not request.job_description.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Job description cannot be empty.",
+        )
+
+    if len(request.resume_text.strip()) < 50:
+        raise HTTPException(
+            status_code=400,
+            detail="Resume text is too short to analyze reliably.",
+        )
+
+    if len(request.job_description.strip()) < 50:
+        raise HTTPException(
+            status_code=400,
+            detail="Job description is too short to analyze reliably.",
+        )
 
     # ------------------------------------------------
     # TEXT ANALYSIS

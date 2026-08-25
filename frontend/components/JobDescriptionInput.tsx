@@ -12,19 +12,28 @@ export default function JobDescriptionInput({
   onClear,
 }: JobDescriptionInputProps) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
-      <p className="text-sm font-bold uppercase tracking-wide text-blue-600">
-        Step 2
-      </p>
+    <div className="rounded-2xl border border-slate-200 bg-slate-50/70 p-6">
+      <div className="mb-5">
+        <div className="flex items-center gap-3">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-purple-600 text-sm font-bold text-white">
+            2
+          </span>
 
-      <h2 className="mt-2 text-2xl font-bold">
-        Add the Job Description
-      </h2>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wider text-purple-600">
+              Job
+            </p>
 
-      <p className="mt-2 text-slate-500">
-        Paste the description of the position you want to
-        compare against.
-      </p>
+            <h3 className="text-xl font-bold text-slate-900">
+              Add the Job Description
+            </h3>
+          </div>
+        </div>
+
+        <p className="mt-3 text-sm leading-6 text-slate-500">
+          Paste the full job posting you want to compare against.
+        </p>
+      </div>
 
       <textarea
         value={jobDescription}
@@ -32,11 +41,11 @@ export default function JobDescriptionInput({
           onJobDescriptionChange(event.target.value)
         }
         placeholder="Paste the full job description here..."
-        className="mt-7 min-h-[470px] w-full resize-y rounded-xl border border-slate-300 bg-white p-4 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        className="min-h-[500px] w-full resize-y rounded-xl border border-slate-300 bg-white p-4 text-sm leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-purple-500 focus:ring-4 focus:ring-purple-100"
       />
 
       <div className="mt-3 flex items-center justify-between">
-        <p className="text-sm text-slate-400">
+        <p className="text-xs text-slate-400">
           {jobDescription.length.toLocaleString()} characters
         </p>
 
@@ -44,7 +53,7 @@ export default function JobDescriptionInput({
           <button
             type="button"
             onClick={onClear}
-            className="text-sm font-semibold text-slate-500 hover:text-red-600"
+            className="rounded-lg px-3 py-1 text-sm font-semibold text-slate-500 transition hover:bg-red-50 hover:text-red-600"
           >
             Clear
           </button>

@@ -206,24 +206,28 @@ export default function Home() {
   const handleFileUpload = async (
     event: ChangeEvent<HTMLInputElement>
   ) => {
-
-    const file =
-      event.target.files?.[0];
+    const file = event.target.files?.[0];
 
     if (!file) {
       return;
     }
 
+    const maxFileSize =
+      5 * 1024 * 1024;
+
+    if (file.size > maxFileSize) {
+      setError(
+        "Please upload a PDF smaller than 5 MB."
+      );
+
+      setResumeFileName("");
+
+      return;
+    }
 
     resetAnalysis();
 
-
-    // --------------------------------------------------------
-    // MAKE SURE FILE IS A PDF
-    // --------------------------------------------------------
-
     if (file.type !== "application/pdf") {
-
       setError(
         "Please upload a PDF resume."
       );
@@ -231,117 +235,78 @@ export default function Home() {
       return;
     }
 
-
     setIsReadingPdf(true);
-
-    setResumeFileName(
-      file.name
-    );
-
+    setResumeFileName(file.name);
 
     try {
-
-      // ------------------------------------------------------
-      // LOAD PDF.JS
-      // ------------------------------------------------------
-
       const pdfjsLib =
         await import("pdfjs-dist");
-
-
-      // ------------------------------------------------------
-      // CONFIGURE PDF WORKER
-      // ------------------------------------------------------
 
       pdfjsLib.GlobalWorkerOptions.workerSrc =
         `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
-
-      // ------------------------------------------------------
-      // READ PDF
-      // ------------------------------------------------------
-
       const arrayBuffer =
         await file.arrayBuffer();
-
 
       const pdf =
         await pdfjsLib.getDocument({
           data: arrayBuffer,
         }).promise;
 
-
       let extractedText = "";
-
-
-      // ------------------------------------------------------
-      // EXTRACT TEXT FROM EVERY PAGE
-      // ------------------------------------------------------
 
       for (
         let pageNumber = 1;
         pageNumber <= pdf.numPages;
         pageNumber++
       ) {
-
         const page =
-          await pdf.getPage(
-            pageNumber
-          );
-
+          await pdf.getPage(pageNumber);
 
         const textContent =
           await page.getTextContent();
 
-
         const pageText =
           textContent.items
             .map((item) => {
-
               if ("str" in item) {
                 return item.str;
               }
 
               return "";
-
             })
             .join(" ");
 
-
-        extractedText +=
-          `${pageText}\n`;
+        extractedText += `${pageText}\n`;
       }
 
+      const cleanedText =
+        extractedText.trim();
 
-      // ------------------------------------------------------
-      // PUT PDF TEXT INTO RESUME INPUT
-      // ------------------------------------------------------
+      if (!cleanedText) {
+        setError(
+          "No readable text was found in this PDF. Try another file or paste your resume manually."
+        );
 
-      setResumeText(
-        extractedText.trim()
-      );
+        setResumeFileName("");
 
+        return;
+      }
 
+      setResumeText(cleanedText);
     } catch (uploadError) {
-
       console.error(
         "PDF extraction error:",
         uploadError
       );
 
-
       setError(
         "Unable to read this PDF. Try another PDF or paste your resume manually."
       );
 
-
       setResumeFileName("");
-
-
     } finally {
-
       setIsReadingPdf(false);
-
     }
   };
 
@@ -378,15 +343,13 @@ export default function Home() {
 
   const handleAnalyze = async () => {
 
+    if (isAnalyzing) {
+      return;
+    }
+
     setError("");
 
-
-    // --------------------------------------------------------
-    // VALIDATE RESUME
-    // --------------------------------------------------------
-
     if (!resumeText.trim()) {
-
       setError(
         "Please upload a resume or paste your resume text."
       );
@@ -394,15 +357,34 @@ export default function Home() {
       return;
     }
 
+    if (!jobDescription.trim()) {
+      setError(
+        "Please paste a job description before analyzing."
+      );
+
+      return;
+    }
+
+
+    // --------------------------------------------------------
+    // VALIDATE RESUME
+    // --------------------------------------------------------
+
+    if (resumeText.trim().length < 50) {
+      setError(
+        "Your resume text is too short to analyze reliably."
+      );
+
+      return;
+    }
 
     // --------------------------------------------------------
     // VALIDATE JOB DESCRIPTION
     // --------------------------------------------------------
 
-    if (!jobDescription.trim()) {
-
+    if (jobDescription.trim().length < 50) {
       setError(
-        "Please paste a job description before analyzing."
+        "The job description is too short to analyze reliably."
       );
 
       return;
@@ -422,7 +404,7 @@ export default function Home() {
 
       const response =
         await fetch(
-          `${BACKEND_URL}/analyze`,
+          `https://obscure-palm-tree-pxxgg7647xh779-8000.app.github.dev/analyze`,
           {
             method: "POST",
 
@@ -449,11 +431,22 @@ export default function Home() {
       // ======================================================
 
       if (!response.ok) {
+        let message =
+          "The analysis could not be completed.";
 
-        throw new Error(
-          `Backend returned status ${response.status}`
-        );
+        try {
+          const errorData =
+            await response.json();
 
+          if (errorData.detail) {
+            message =
+              errorData.detail;
+          }
+        } catch {
+          // Keep default message
+        }
+
+        throw new Error(message);
       }
 
 
@@ -567,19 +560,25 @@ export default function Home() {
 
 
     } catch (analysisError) {
-
       console.error(
         "Analysis error:",
         analysisError
       );
 
-
-      setError(
-        "Unable to connect to the analysis server. Make sure your FastAPI backend is running and port 8000 is public."
-      );
-
-
-    } finally {
+      if (
+        analysisError instanceof Error
+      ) {
+        setError(
+          analysisError.message
+        );
+      } else {
+        setError(
+          "An unexpected error occurred."
+        );
+      }
+    } 
+    
+    finally {
 
       setIsAnalyzing(false);
 
@@ -593,7 +592,7 @@ export default function Home() {
 
   return (
 
-    <main className="min-h-screen bg-slate-50 px-4 py-10 text-slate-900">
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 px-4 py-10 text-slate-900 md:px-8">
 
       <div className="mx-auto max-w-7xl">
 
@@ -602,27 +601,38 @@ export default function Home() {
             HEADER
         ==================================================== */}
 
-        <header className="mb-10 text-center">
+        <header className="mx-auto mb-12 max-w-4xl text-center">
+          <div className="mb-4 inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2">
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-blue-700">
+              AI Career Intelligence
+            </span>
+          </div>
 
-          <p className="text-sm font-bold uppercase tracking-widest text-blue-600">
-            AI-Powered Career Tool
-          </p>
-
-
-          <h1 className="mt-3 text-4xl font-bold tracking-tight md:text-5xl">
+          <h1 className="text-4xl font-bold tracking-tight text-slate-950 md:text-6xl">
             AI Resume Job Matcher
           </h1>
 
-
-          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-slate-600">
-
-            Compare your resume against a job description,
-            identify matching skills, discover missing
-            qualifications, and receive AI-powered
-            recommendations for improving your application.
-
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 md:text-lg">
+            Compare your resume against a job description, uncover skill gaps,
+            measure semantic alignment, and receive targeted recommendations
+            for improving your application.
           </p>
 
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            {[
+              "Skill Analysis",
+              "Semantic Matching",
+              "AI Rewrites",
+              "Resume Recommendations",
+            ].map((item) => (
+              <span
+                key={item}
+                className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-500 shadow-sm"
+              >
+                {item}
+              </span>
+            ))}
+          </div>
         </header>
 
 
@@ -630,7 +640,23 @@ export default function Home() {
             INPUT COMPONENTS
         ==================================================== */}
 
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm md:p-7">
+          <div className="mb-6">
+            <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
+              Start Your Analysis
+            </p>
+
+            <h2 className="mt-1 text-2xl font-bold text-slate-900">
+              Compare your resume to a job
+            </h2>
+
+            <p className="mt-2 text-sm text-slate-500">
+              Add both documents below and the system will analyze technical
+              skills, semantic similarity, and resume alignment.
+            </p>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
 
 
           {/* RESUME */}
@@ -693,7 +719,7 @@ export default function Home() {
             }
 
           />
-
+          </div>
         </section>
 
 
@@ -717,13 +743,23 @@ export default function Home() {
         ==================================================== */}
 
         {error && (
+          <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 p-5">
+            <div className="flex gap-3">
+              <span className="font-bold text-red-600">
+                !
+              </span>
 
-          <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+              <div>
+                <p className="font-semibold text-red-900">
+                  Something needs your attention
+                </p>
 
-            {error}
-
+                <p className="mt-1 text-sm text-red-700">
+                  {error}
+                </p>
+              </div>
+            </div>
           </div>
-
         )}
 
 
@@ -731,41 +767,50 @@ export default function Home() {
             ANALYZE BUTTON
         ==================================================== */}
 
-        <div className="my-8 flex justify-center">
-
+        <div className="my-8 flex flex-col items-center">
           <button
-
             type="button"
-
-            onClick={
-              handleAnalyze
-            }
-
-            disabled={
-              isAnalyzing ||
-              isReadingPdf
-            }
-
-            className="min-w-[260px] rounded-xl bg-blue-600 px-8 py-4 text-base font-bold text-white shadow-sm transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-300"
-
+            onClick={handleAnalyze}
+            disabled={isAnalyzing || isReadingPdf}
+            className="group min-w-[280px] rounded-2xl bg-slate-950 px-8 py-4 text-base font-bold text-white shadow-lg shadow-slate-200 transition hover:-translate-y-0.5 hover:bg-blue-600 hover:shadow-xl disabled:cursor-not-allowed disabled:bg-slate-400 disabled:hover:translate-y-0"
           >
-
             {isReadingPdf
               ? "Reading Resume..."
               : isAnalyzing
-                ? "Analyzing..."
-                : "Analyze Match"}
-
+                ? "Analyzing Your Match..."
+                : "Analyze Resume Match"}
           </button>
 
+          <p className="mt-3 text-xs text-slate-400">
+            Analysis may take a few seconds while the AI models process your documents.
+          </p>
         </div>
+
+        {isAnalyzing && (
+          <div className="mb-8 rounded-2xl border border-blue-200 bg-blue-50 p-6">
+            <div className="flex items-start gap-4">
+              <div className="mt-1 h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent" />
+
+              <div>
+                <p className="font-semibold text-blue-900">
+                  Analyzing your resume...
+                </p>
+
+                <p className="mt-1 text-sm leading-6 text-blue-700">
+                  Comparing skills, generating embeddings, calculating match
+                  scores, and building personalized recommendations.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
 
         {/* ====================================================
             ANALYSIS RESULTS
         ==================================================== */}
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
 
 
           {!analysisStarted ? (
@@ -774,27 +819,23 @@ export default function Home() {
             // BEFORE ANALYSIS
             // ==================================================
 
-            <div className="py-12 text-center">
+            <div className="py-16 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
+                ✦
+              </div>
 
-
-              <p className="text-sm font-semibold uppercase tracking-wide text-slate-400">
+              <p className="mt-5 text-sm font-semibold uppercase tracking-wide text-slate-400">
                 Analysis Results
               </p>
 
-
-              <h2 className="mt-2 text-2xl font-semibold text-slate-900">
+              <h2 className="mt-2 text-2xl font-bold text-slate-900">
                 Your match results will appear here.
               </h2>
 
-
               <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-slate-500">
-
-                Upload or paste your resume, add a job
-                description, then select Analyze Match.
-
+                Upload your resume, paste a job description, and run the
+                analysis to see your scores, skill gaps, and recommendations.
               </p>
-
-
             </div>
 
 
@@ -937,12 +978,14 @@ export default function Home() {
             FOOTER
         ==================================================== */}
 
-        <footer className="py-10 text-center">
-
-          <p className="text-sm text-slate-400">
+        <footer className="py-12 text-center">
+          <p className="text-sm font-medium text-slate-400">
             AI Resume Job Matcher
           </p>
 
+          <p className="mt-1 text-xs text-slate-400">
+            Built with Next.js, TypeScript, Python, FastAPI, and NLP.
+          </p>
         </footer>
 
 
