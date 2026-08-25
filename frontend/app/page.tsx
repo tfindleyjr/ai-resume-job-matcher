@@ -12,6 +12,7 @@ type RewriteSuggestion = {
   original: string;
   suggested: string;
   reason: string;
+  source: "ai" | "rule_based";
 };
 
 type AnalyzeResponse = {
@@ -884,9 +885,25 @@ export default function Home() {
 
                         <div className="my-5 border-t border-slate-200" />
 
-                        <p className="text-xs font-semibold uppercase tracking-wide text-purple-600">
-                          Suggested Rewrite
-                        </p>
+                        <div className="flex items-center justify-between gap-4">
+
+                          <p className="text-xs font-semibold uppercase tracking-wide text-purple-600">
+                            Suggested Rewrite
+                          </p>
+
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                              suggestion.source === "ai"
+                                ? "bg-purple-100 text-purple-700"
+                                : "bg-slate-100 text-slate-600"
+                            }`}
+                          >
+                            {suggestion.source === "ai"
+                              ? "AI Generated"
+                              : "Safe Fallback"}
+                          </span>
+
+                        </div>
 
                         <p className="mt-2 font-medium leading-7 text-slate-900">
                           {suggestion.suggested}

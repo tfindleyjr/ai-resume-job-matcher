@@ -36,27 +36,49 @@ class MatchRequest(BaseModel):
 @app.get("/")
 def read_root():
     return {
-        "message": "AI Resume Job Matcher API is running"
+        "message": (
+            "AI Resume Job Matcher API is running"
+        )
     }
 
 
 @app.post("/analyze")
-def analyze_match(request: MatchRequest):
+def analyze_match(
+    request: MatchRequest
+):
+
+    # ------------------------------------------------
+    # TEXT ANALYSIS
+    # ------------------------------------------------
 
     text_analysis = compare_texts(
         request.resume_text,
         request.job_description,
     )
 
+    # ------------------------------------------------
+    # SKILL ANALYSIS
+    # ------------------------------------------------
+
     skill_analysis = compare_skills(
         request.resume_text,
         request.job_description,
     )
 
-    semantic_score = calculate_semantic_similarity(
-        request.resume_text,
-        request.job_description,
+    # ------------------------------------------------
+    # SEMANTIC ANALYSIS
+    # ------------------------------------------------
+
+    semantic_score = (
+        calculate_semantic_similarity(
+            request.resume_text,
+            request.job_description,
+        )
     )
+
+    # ------------------------------------------------
+    # MATCH SCORES
+    # ------------------------------------------------
 
     skill_match_score = skill_analysis[
         "skill_match_score"
@@ -67,17 +89,48 @@ def analyze_match(request: MatchRequest):
         + (semantic_score * 0.30)
     )
 
-    recommendations = generate_recommendations(
-        missing_skills=skill_analysis["missing_skills"],
-        skill_match_score=skill_match_score,
-        semantic_score=semantic_score,
+    # ------------------------------------------------
+    # RECOMMENDATIONS
+    # ------------------------------------------------
+
+    recommendations = (
+        generate_recommendations(
+            missing_skills=skill_analysis[
+                "missing_skills"
+            ],
+            skill_match_score=(
+                skill_match_score
+            ),
+            semantic_score=(
+                semantic_score
+            ),
+        )
     )
 
-    rewrite_suggestions = generate_rewrite_suggestions(
-        resume_text=request.resume_text,
-        matched_skills=skill_analysis["matched_skills"],
-        missing_skills=skill_analysis["missing_skills"],
+    # ------------------------------------------------
+    # AI RESUME OPTIMIZATION
+    # ------------------------------------------------
+
+    rewrite_suggestions = (
+        generate_rewrite_suggestions(
+            resume_text=(
+                request.resume_text
+            ),
+            job_description=(
+                request.job_description
+            ),
+            matched_skills=skill_analysis[
+                "matched_skills"
+            ],
+            missing_skills=skill_analysis[
+                "missing_skills"
+            ],
+        )
     )
+
+    # ------------------------------------------------
+    # RESPONSE
+    # ------------------------------------------------
 
     return {
         "message": (
@@ -88,9 +141,19 @@ def analyze_match(request: MatchRequest):
         **text_analysis,
         **skill_analysis,
 
-        "semantic_score": semantic_score,
-        "overall_match_score": overall_match_score,
+        "semantic_score": (
+            semantic_score
+        ),
 
-        "recommendations": recommendations,
-        "rewrite_suggestions": rewrite_suggestions,
+        "overall_match_score": (
+            overall_match_score
+        ),
+
+        "recommendations": (
+            recommendations
+        ),
+
+        "rewrite_suggestions": (
+            rewrite_suggestions
+        ),
     }
