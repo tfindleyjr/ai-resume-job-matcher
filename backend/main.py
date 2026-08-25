@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from text_processing import compare_texts
 from skill_extraction import compare_skills
 from semantic_matching import calculate_semantic_similarity
+from recommendations import generate_recommendations
 
 
 app = FastAPI(
@@ -41,20 +42,36 @@ def read_root():
 @app.post("/analyze")
 def analyze_match(request: MatchRequest):
 
+    # ---------------------------------------------------------
+    # TEXT ANALYSIS
+    # ---------------------------------------------------------
+
     text_analysis = compare_texts(
         request.resume_text,
         request.job_description,
     )
+
+    # ---------------------------------------------------------
+    # SKILL ANALYSIS
+    # ---------------------------------------------------------
 
     skill_analysis = compare_skills(
         request.resume_text,
         request.job_description,
     )
 
+    # ---------------------------------------------------------
+    # SEMANTIC AI ANALYSIS
+    # ---------------------------------------------------------
+
     semantic_score = calculate_semantic_similarity(
         request.resume_text,
         request.job_description,
     )
+
+    # ---------------------------------------------------------
+    # OVERALL SCORE
+    # ---------------------------------------------------------
 
     skill_match_score = skill_analysis[
         "skill_match_score"
@@ -64,6 +81,20 @@ def analyze_match(request: MatchRequest):
         (skill_match_score * 0.70)
         + (semantic_score * 0.30)
     )
+
+    # ---------------------------------------------------------
+    # RECOMMENDATIONS
+    # ---------------------------------------------------------
+
+    recommendations = generate_recommendations(
+        missing_skills=skill_analysis["missing_skills"],
+        skill_match_score=skill_match_score,
+        semantic_score=semantic_score,
+    )
+
+    # ---------------------------------------------------------
+    # RESPONSE
+    # ---------------------------------------------------------
 
     return {
         "message": (
@@ -76,4 +107,5 @@ def analyze_match(request: MatchRequest):
 
         "semantic_score": semantic_score,
         "overall_match_score": overall_match_score,
+        "recommendations": recommendations,
     }
